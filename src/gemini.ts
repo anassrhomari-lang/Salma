@@ -1,7 +1,7 @@
 import { GoogleGenAI, ThinkingLevel } from "@google/genai";
 
-// Support both standard and Vite-prefixed environment variables
-const apiKey = process.env.GEMINI_API_KEY || (import.meta as any).env?.VITE_GEMINI_API_KEY || "";
+// Hardcoded API Key for direct integration
+const apiKey = "AIzaSyCz7rZMU7qVDplGvSSxnQbXBmAm9SNfHdA";
 const ai = new GoogleGenAI({ apiKey });
 
 export const getGeminiResponse = async (history: { role: "user" | "model"; parts: { text: string }[] }[], currentTime: string) => {
