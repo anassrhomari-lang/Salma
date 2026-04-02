@@ -1,0 +1,31 @@
+{
+  "entities": {
+    "Memory": {
+      "title": "Memory",
+      "description": "A personal memory or agenda entry for Salma Didi.",
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string",
+          "description": "The content of the memory."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the memory was created."
+        },
+        "uid": {
+          "type": "string",
+          "description": "The user ID of the owner."
+        }
+      },
+      "required": ["text", "createdAt", "uid"]
+    }
+  },
+  "firestore": {
+    "/memories/{memoryId}": {
+      "schema": "Memory",
+      "description": "Collection of personal memories."
+    }
+  }
+}

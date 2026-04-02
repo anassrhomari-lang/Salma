@@ -1,0 +1,50 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: memories
+    // Document ID: auto-generated
+    // Fields:
+    //   - text: string (required, 1-2000 chars) - The memory content
+    //   - createdAt: timestamp (required) - Creation time
+    //   - uid: string (required) - Owner's UID
+    //
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.uid;
+    }
+
+    function isValidMemory(data) {
+      return data.keys().hasAll(['text', 'createdAt', 'uid']) &&
+             data.keys().hasOnly(['text', 'createdAt', 'uid']) &&
+             data.text is string && data.text.size() > 0 && data.text.size() <= 2000 &&
+             data.createdAt is timestamp &&
+             data.uid is string && data.uid == request.auth.uid;
+    }
+
+    match /memories/{memoryId} {
+      allow read: if isDocOwner();
+      allow create: if isAuthenticated() && isValidMemory(request.resource.data);
+      allow update: if isDocOwner() && isValidMemory(request.resource.data) &&
+                      request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if isDocOwner();
+    }
+
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+  }
+}

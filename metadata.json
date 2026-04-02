@@ -1,0 +1,5 @@
+{
+  "name": "Un Cadeau pour Salma Didi ✨",
+  "description": "Une expérience d'anniversaire interactive et magique créée exclusivement pour Salma Didi.",
+  "requestFramePermissions": ["microphone"]
+}
