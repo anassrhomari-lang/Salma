@@ -283,6 +283,9 @@ const EscapingButton = () => {
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   const moveButton = () => {
+    // Disable escaping on touch devices to avoid frustration
+    if (window.matchMedia("(pointer: coarse)").matches) return;
+
     const padding = 100;
     const newX = Math.random() * (window.innerWidth - padding * 2) + padding;
     const newY = Math.random() * (window.innerHeight - padding * 2) + padding;
@@ -609,14 +612,14 @@ export default function App() {
               Une Expérience Unique pour
             </motion.div>
             
-            <motion.h1
-              initial={{ y: 30, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.8, duration: 1.2 }}
-              className="font-display text-5xl md:text-7xl mb-6 tracking-tighter text-glow"
-            >
-              Salma Didi
-            </motion.h1>
+    <motion.h1
+      initial={{ y: 30, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ delay: 0.8, duration: 1.2 }}
+      className="font-display text-4xl sm:text-5xl md:text-7xl mb-6 tracking-tighter text-glow"
+    >
+      Salma Didi
+    </motion.h1>
             
             <motion.p
               initial={{ opacity: 0 }}
@@ -670,9 +673,9 @@ export default function App() {
                 <span className="text-gold-light text-[0.6rem] tracking-[0.4em] uppercase font-bold">Chapitre I</span>
               </div>
               
-              <h2 className="font-display text-4xl md:text-6xl mb-6 leading-tight">L'Élégance Incarnée</h2>
-              
-              <div className="grid md:grid-cols-2 gap-6 mb-8">
+      <h2 className="font-display text-3xl sm:text-4xl md:text-6xl mb-6 leading-tight">L'Élégance Incarnée</h2>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <div className="glass p-6 rounded-3xl border-white/5 hover:border-gold/20 transition-all group">
                   <p className="text-base leading-relaxed text-gold-light italic mb-4 group-hover:text-gold transition-colors">
                     "La mode passe, le style est éternel."
@@ -730,16 +733,16 @@ export default function App() {
                 <span className="text-blue-primary text-[0.6rem] tracking-[0.4em] uppercase font-bold">Chapitre II</span>
               </div>
               
-              <h2 className="font-display text-4xl md:text-6xl mb-6 leading-tight">Le Cœur Blaugrana</h2>
-              
-              <div className="glass border-white/5 rounded-[2rem] mb-8 relative overflow-hidden group shadow-2xl">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-primary/40 to-red-primary/40 opacity-0 group-hover:opacity-100 transition-all duration-700 z-10 flex flex-col items-center justify-center backdrop-blur-sm">
-                  <span className="text-white font-display text-3xl tracking-widest uppercase mb-2 scale-90 group-hover:scale-100 transition-transform duration-500">La Magie de Pedri</span>
-                  <div className="flex gap-4">
-                    <span className="bg-white/20 backdrop-blur-md px-4 py-1 rounded-full text-[0.6rem] uppercase tracking-widest border border-white/30">Vision</span>
-                    <span className="bg-white/20 backdrop-blur-md px-4 py-1 rounded-full text-[0.6rem] uppercase tracking-widest border border-white/30">Talent</span>
-                  </div>
-                </div>
+      <h2 className="font-display text-3xl sm:text-4xl md:text-6xl mb-6 leading-tight">Le Cœur Blaugrana</h2>
+      
+      <div className="glass border-white/5 rounded-[2rem] mb-8 relative overflow-hidden group shadow-2xl">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-primary/40 to-red-primary/40 opacity-0 group-hover:opacity-100 transition-all duration-700 z-10 flex flex-col items-center justify-center backdrop-blur-sm p-4 text-center">
+          <span className="text-white font-display text-2xl sm:text-3xl tracking-widest uppercase mb-2 scale-90 group-hover:scale-100 transition-transform duration-500">La Magie de Pedri</span>
+          <div className="flex gap-2 sm:gap-4 flex-wrap justify-center">
+            <span className="bg-white/20 backdrop-blur-md px-4 py-1 rounded-full text-[0.6rem] uppercase tracking-widest border border-white/30">Vision</span>
+            <span className="bg-white/20 backdrop-blur-md px-4 py-1 rounded-full text-[0.6rem] uppercase tracking-widest border border-white/30">Talent</span>
+          </div>
+        </div>
                 <div className="aspect-video w-full relative">
                   <img 
                     src="https://www.fcbarcelona.com/photo-resources/2025/09/10/834bd104-c292-48eb-b5ae-2d7b16bbbdbd/08-Pedri.jpg?width=1200&height=750" 
@@ -794,9 +797,9 @@ export default function App() {
                 <span className="text-gold-light text-[0.6rem] tracking-[0.4em] uppercase font-bold">Chapitre III</span>
               </div>
               
-              <h2 className="font-display text-4xl md:text-6xl mb-6 leading-tight">L'Âme d'Artiste</h2>
-              
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <h2 className="font-display text-3xl sm:text-4xl md:text-6xl mb-6 leading-tight">L'Âme d'Artiste</h2>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                 <div className="h-full max-h-[350px]">
                   <MemoryAgenda user={user} />
                 </div>
@@ -856,7 +859,7 @@ export default function App() {
               🎁
             </motion.div>
             
-            <h2 className="font-display text-4xl md:text-6xl mb-6 text-center text-glow">Pour Toi, Salma</h2>
+    <h2 className="font-display text-3xl sm:text-4xl md:text-6xl mb-6 text-center text-glow">Pour Toi, Salma</h2>
             <p className="text-muted-text text-center max-w-lg mb-10 leading-relaxed text-base italic">
               "Ce voyage à travers tes passions n'est que le prélude d'une symphonie infinie. Quelqu'un a voulu que tu saches à quel point ton existence illumine ce monde."
             </p>
@@ -889,69 +892,61 @@ export default function App() {
             animate={{ opacity: 1 }}
             className="flex-1 flex flex-col z-10 h-[100dvh] overflow-hidden"
           >
-            <header className="bg-bg/60 backdrop-blur-2xl border-b border-gold/10 p-4 pr-24 flex items-center justify-between sticky top-0 z-50">
-              <div className="flex items-center gap-4">
-                <motion.button 
-                  whileHover={{ x: -5 }}
-                  onClick={() => setChapter('gift')} 
-                  className="text-gold-light p-2 hover:bg-gold/10 rounded-full transition-all"
-                >
-                  <ChevronLeft size={24} />
-                </motion.button>
-                <div className="flex items-center gap-4">
-                  <motion.div 
-                    animate={{ 
-                      y: [0, -3, 0],
-                      rotate: [0, 3, -3, 0],
-                      scale: [1, 1.02, 1]
-                    }}
-                    transition={{ 
-                      duration: 8,
-                      repeat: Infinity,
-                      ease: "easeInOut"
-                    }}
-                    className="relative group"
-                  >
-                    <div className="absolute -inset-1.5 bg-gradient-to-br from-gold via-gold-light to-gold rounded-2xl blur-md opacity-40 group-hover:opacity-70 transition-opacity animate-pulse" />
-                    <div className="relative w-12 h-12 rounded-2xl bg-gradient-to-br from-gold via-gold-light to-gold flex items-center justify-center text-2xl shadow-2xl border border-white/20 overflow-hidden">
-                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.4),transparent)]" />
-                      <span className="relative z-10 drop-shadow-md">✨</span>
-                    </div>
-                  </motion.div>
-                  <div>
-                    <div className="text-gold-light text-[0.6rem] tracking-[0.5em] uppercase font-black mb-1 opacity-80">Esprit Protecteur</div>
-                    <div className="font-display text-2xl text-glow leading-none">Lumière</div>
-                  </div>
-                </div>
-              </div>
-              
-              {!user && (
-                <div className="flex flex-col items-end gap-2 mr-16">
-                  <button 
-                    onClick={handleLogin}
-                    disabled={isLoggingIn}
-                    className={`text-[0.65rem] uppercase tracking-[0.2em] bg-gold/10 border border-gold/20 px-6 py-2.5 rounded-full text-gold-light hover:bg-gold hover:text-bg transition-all font-bold ${isLoggingIn ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  >
-                    {isLoggingIn ? 'Connexion...' : 'Connexion'}
-                  </button>
-                  {loginError && (
-                    <motion.span 
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="text-[0.55rem] text-red-400 uppercase tracking-widest font-bold"
-                    >
-                      {loginError}
-                    </motion.span>
-                  )}
-                </div>
-              )}
-              {user && (
-                <div className="flex items-center gap-3 glass-gold px-4 py-2 rounded-full">
-                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                  <span className="text-[0.6rem] uppercase tracking-widest font-bold text-gold-light">{user.displayName?.split(' ')[0]}</span>
-                </div>
-              )}
-            </header>
+    <header className="bg-bg/60 backdrop-blur-2xl border-b border-gold/10 p-4 flex items-center justify-between sticky top-0 z-50">
+      <div className="flex items-center gap-2 sm:gap-4 overflow-hidden">
+        <motion.button 
+          whileHover={{ x: -5 }}
+          onClick={() => setChapter('gift')} 
+          className="text-gold-light p-2 hover:bg-gold/10 rounded-full transition-all flex-shrink-0"
+        >
+          <ChevronLeft size={24} />
+        </motion.button>
+        <div className="flex items-center gap-2 sm:gap-4 overflow-hidden">
+          <motion.div 
+            animate={{ 
+              y: [0, -3, 0],
+              rotate: [0, 3, -3, 0],
+              scale: [1, 1.02, 1]
+            }}
+            transition={{ 
+              duration: 8,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+            className="relative group flex-shrink-0"
+          >
+            <div className="absolute -inset-1.5 bg-gradient-to-br from-gold via-gold-light to-gold rounded-2xl blur-md opacity-40 group-hover:opacity-70 transition-opacity animate-pulse" />
+            <div className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-gold via-gold-light to-gold flex items-center justify-center text-xl sm:text-2xl shadow-2xl border border-white/20 overflow-hidden">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.4),transparent)]" />
+              <span className="relative z-10 drop-shadow-md">✨</span>
+            </div>
+          </motion.div>
+          <div className="overflow-hidden">
+            <div className="text-gold-light text-[0.5rem] sm:text-[0.6rem] tracking-[0.3em] sm:tracking-[0.5em] uppercase font-black mb-0.5 sm:mb-1 opacity-80 truncate">Esprit Protecteur</div>
+            <div className="font-display text-lg sm:text-2xl text-glow leading-none truncate">Lumière</div>
+          </div>
+        </div>
+      </div>
+      
+      <div className="flex items-center gap-2">
+        {!user ? (
+          <div className="flex flex-col items-end gap-1">
+            <button 
+              onClick={handleLogin}
+              disabled={isLoggingIn}
+              className={`text-[0.55rem] sm:text-[0.65rem] uppercase tracking-[0.1em] sm:tracking-[0.2em] bg-gold/10 border border-gold/20 px-3 sm:px-6 py-1.5 sm:py-2.5 rounded-full text-gold-light hover:bg-gold hover:text-bg transition-all font-bold ${isLoggingIn ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              {isLoggingIn ? '...' : 'Connexion'}
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 glass-gold px-3 sm:px-4 py-1.5 sm:py-2 rounded-full">
+            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-green-500 animate-pulse" />
+            <span className="text-[0.55rem] sm:text-[0.6rem] uppercase tracking-widest font-bold text-gold-light truncate max-w-[60px] sm:max-w-none">{user.displayName?.split(' ')[0]}</span>
+          </div>
+        )}
+      </div>
+    </header>
 
             <div className="flex-1 overflow-y-auto p-6 space-y-8 no-scrollbar scroll-smooth">
               {messages.map((msg, i) => (
@@ -1028,40 +1023,40 @@ export default function App() {
               <div ref={messagesEndRef} />
             </div>
 
-            <div className="p-4 bg-bg/95 backdrop-blur-xl border-t border-gold/10 relative z-20">
-              <div className="flex gap-4 max-w-4xl mx-auto relative items-center">
-                <div className="absolute -inset-1 bg-gradient-to-r from-gold/20 to-blue-primary/20 blur-xl opacity-30 pointer-events-none" />
-                
-                <div className="relative flex-1 flex items-center">
-                  <input
-                    type="text"
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                    placeholder={isListening ? "Je t'écoute, mon âme sœur..." : "Écris à ton esprit protecteur..."}
-                    className="w-full bg-white/5 border border-gold/20 rounded-2xl px-6 py-4 pr-16 text-[0.85rem] outline-none focus:border-gold/50 focus:bg-white/10 transition-all placeholder:text-muted-text/50 shadow-inner"
-                  />
-                  <div className="absolute right-4 flex items-center gap-2">
-                    {isListening && <VoiceWave isListening={isListening} />}
-                    <button
-                      onClick={toggleListening}
-                      className={`p-2 rounded-xl transition-all ${isListening ? 'text-red-primary bg-red-primary/10 animate-pulse' : 'text-gold-light/40 hover:text-gold hover:bg-gold/10'}`}
-                    >
-                      {isListening ? <MicOff size={18} /> : <Mic size={18} />}
-                    </button>
-                  </div>
-                </div>
+    <div className="p-4 bg-bg/95 backdrop-blur-xl border-t border-gold/10 relative z-20 pb-safe">
+      <div className="flex gap-2 sm:gap-4 max-w-4xl mx-auto relative items-center">
+        <div className="absolute -inset-1 bg-gradient-to-r from-gold/20 to-blue-primary/20 blur-xl opacity-30 pointer-events-none" />
+        
+        <div className="relative flex-1 flex items-center">
+          <input
+            type="text"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+            placeholder={isListening ? "Je t'écoute..." : "Écris à Lumière..."}
+            className="w-full bg-white/5 border border-gold/20 rounded-2xl px-4 sm:px-6 py-3 sm:py-4 pr-12 sm:pr-16 text-[0.8rem] sm:text-[0.85rem] outline-none focus:border-gold/50 focus:bg-white/10 transition-all placeholder:text-muted-text/50 shadow-inner"
+          />
+          <div className="absolute right-2 sm:right-4 flex items-center gap-1 sm:gap-2">
+            {isListening && <VoiceWave isListening={isListening} />}
+            <button
+              onClick={toggleListening}
+              className={`p-1.5 sm:p-2 rounded-xl transition-all ${isListening ? 'text-red-primary bg-red-primary/10 animate-pulse' : 'text-gold-light/40 hover:text-gold hover:bg-gold/10'}`}
+            >
+              {isListening ? <MicOff size={16} /> : <Mic size={16} />}
+            </button>
+          </div>
+        </div>
 
-                <motion.button
-                  whileHover={{ scale: 1.05, rotate: 5 }}
-                  whileTap={{ scale: 0.95 }}
-                  disabled={!inputValue.trim() || isLoading}
-                  onClick={() => handleSendMessage()}
-                  className="w-14 h-14 rounded-2xl bg-gradient-to-br from-gold to-gold/80 text-bg flex items-center justify-center disabled:from-gray-800 disabled:to-gray-900 disabled:text-muted-text transition-all shadow-lg shadow-gold/20 group"
-                >
-                  <Send size={20} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                </motion.button>
-              </div>
+        <motion.button
+          whileHover={{ scale: 1.05, rotate: 5 }}
+          whileTap={{ scale: 0.95 }}
+          disabled={!inputValue.trim() || isLoading}
+          onClick={() => handleSendMessage()}
+          className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-gold to-gold/80 text-bg flex items-center justify-center disabled:from-gray-800 disabled:to-gray-900 disabled:text-muted-text transition-all shadow-lg shadow-gold/20 group flex-shrink-0"
+        >
+          <Send size={18} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+        </motion.button>
+      </div>
               <div className="text-center mt-2">
                 <p className="text-[0.55rem] text-muted-text/40 uppercase tracking-[0.4em]">Inspiré par ta lumière</p>
               </div>
