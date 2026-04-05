@@ -33,6 +33,7 @@ import {
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { getGeminiResponse } from './gemini';
+import { LumiereSpirit } from './components/LumiereSpirit';
 import { 
   auth, 
   db, 
@@ -374,6 +375,7 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [creatureState, setCreatureState] = useState<'idle' | 'thinking' | 'speaking'>('idle');
   const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
@@ -491,7 +493,10 @@ export default function App() {
     scrollToBottom();
   }, [messages]);
 
-  const nextChapter = (next: Chapter) => setChapter(next);
+  const nextChapter = (next: Chapter) => {
+    console.log("Transitioning to chapter:", next);
+    setChapter(next);
+  };
 
   const handleSendMessage = async (text: string = inputValue) => {
     const messageText = text.trim();
@@ -502,6 +507,7 @@ export default function App() {
     setMessages(updatedMessages);
     setInputValue('');
     setIsLoading(true);
+    setCreatureState('thinking');
 
     try {
       // Automatically save to memories if user is logged in
@@ -519,9 +525,12 @@ export default function App() {
       }));
       const currentTime = new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' });
       const response = await getGeminiResponse(history, currentTime);
+      setCreatureState('speaking');
       setMessages([...updatedMessages, { role: 'model', text: response }]);
+      setTimeout(() => setCreatureState('idle'), 3500);
     } catch (error) {
       console.error(error);
+      setCreatureState('idle');
       setMessages([...updatedMessages, { role: 'model', text: "Un petit éclat de magie s'est égaré... mais mon affection pour toi reste intacte, Salma. ✨" }]);
     } finally {
       setIsLoading(false);
@@ -869,6 +878,7 @@ export default function App() {
                 whileHover={{ scale: 1.05, boxShadow: "0 0 40px rgba(212,175,55,0.4)" }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => {
+                  console.log("Entering chat chapter...");
                   setChapter('chat');
                 }}
                 className="bg-gradient-to-r from-gold via-gold-light to-gold py-5 rounded-full text-[0.75rem] tracking-[0.4em] uppercase font-bold text-bg shadow-2xl transition-all"
@@ -884,182 +894,128 @@ export default function App() {
             </div>
           </motion.div>
         )}
-
         {chapter === 'chat' && (
           <motion.div
             key="chat"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="flex-1 flex flex-col z-10 h-[100dvh] overflow-hidden"
+            className="flex-1 relative z-10 h-[100dvh] overflow-hidden bg-bg"
           >
-    <header className="bg-bg/60 backdrop-blur-2xl border-b border-gold/10 p-4 flex items-center justify-between sticky top-0 z-50">
-      <div className="flex items-center gap-2 sm:gap-4 overflow-hidden">
-        <motion.button 
-          whileHover={{ x: -5 }}
-          onClick={() => setChapter('gift')} 
-          className="text-gold-light p-2 hover:bg-gold/10 rounded-full transition-all flex-shrink-0"
-        >
-          <ChevronLeft size={24} />
-        </motion.button>
-        <div className="flex items-center gap-2 sm:gap-4 overflow-hidden">
-          <motion.div 
-            animate={{ 
-              y: [0, -3, 0],
-              rotate: [0, 3, -3, 0],
-              scale: [1, 1.02, 1]
-            }}
-            transition={{ 
-              duration: 8,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-            className="relative group flex-shrink-0"
-          >
-            <div className="absolute -inset-1.5 bg-gradient-to-br from-gold via-gold-light to-gold rounded-2xl blur-md opacity-40 group-hover:opacity-70 transition-opacity animate-pulse" />
-            <div className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-gold via-gold-light to-gold flex items-center justify-center text-xl sm:text-2xl shadow-2xl border border-white/20 overflow-hidden">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.4),transparent)]" />
-              <span className="relative z-10 drop-shadow-md">✨</span>
-            </div>
-          </motion.div>
-          <div className="overflow-hidden">
-            <div className="text-gold-light text-[0.5rem] sm:text-[0.6rem] tracking-[0.3em] sm:tracking-[0.5em] uppercase font-black mb-0.5 sm:mb-1 opacity-80 truncate">Esprit Protecteur</div>
-            <div className="font-display text-lg sm:text-2xl text-glow leading-none truncate">Lumière</div>
-          </div>
-        </div>
-      </div>
-      
-      <div className="flex items-center gap-2">
-        {!user ? (
-          <div className="flex flex-col items-end gap-1">
-            <button 
-              onClick={handleLogin}
-              disabled={isLoggingIn}
-              className={`text-[0.55rem] sm:text-[0.65rem] uppercase tracking-[0.1em] sm:tracking-[0.2em] bg-gold/10 border border-gold/20 px-3 sm:px-6 py-1.5 sm:py-2.5 rounded-full text-gold-light hover:bg-gold hover:text-bg transition-all font-bold ${isLoggingIn ? 'opacity-50 cursor-not-allowed' : ''}`}
-            >
-              {isLoggingIn ? '...' : 'Connexion'}
-            </button>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2 glass-gold px-3 sm:px-4 py-1.5 sm:py-2 rounded-full">
-            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-[0.55rem] sm:text-[0.6rem] uppercase tracking-widest font-bold text-gold-light truncate max-w-[60px] sm:max-w-none">{user.displayName?.split(' ')[0]}</span>
-          </div>
-        )}
-      </div>
-    </header>
+            {/* Overlay: Chat Interface */}
+            <div className="absolute inset-0 z-10 flex flex-col p-4 md:p-8 overflow-hidden pointer-events-none">
+              <header className="w-full max-w-5xl mx-auto bg-bg/10 backdrop-blur-md p-4 rounded-2xl flex items-center justify-between mb-6 border border-gold/5 shadow-xl pointer-events-auto">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-gradient-to-br from-gold to-gold-deep rounded-lg flex items-center justify-center text-bg font-bold text-xl shadow-lg">✦</div>
+                  <div>
+                    <div className="font-cinzel text-[10px] tracking-[3px] text-text-dim uppercase">Esprit Protecteur</div>
+                    <div className="font-cinzel text-xl text-gold-pale tracking-widest">Lumière</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="w-1.5 h-1.5 rounded-full bg-gold shadow-[0_0_8px_var(--gold)] animate-pulse" />
+                  <button 
+                    onClick={() => setChapter('gift')}
+                    className="text-gold-pale/60 hover:text-gold transition-colors"
+                  >
+                    <ChevronLeft size={24} />
+                  </button>
+                </div>
+              </header>
 
-            <div className="flex-1 overflow-y-auto p-6 space-y-8 no-scrollbar scroll-smooth">
-              {messages.map((msg, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 15, filter: "blur(8px)" }}
-                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                  transition={{ 
-                    duration: 0.7, 
-                    ease: [0.22, 1, 0.36, 1],
-                    delay: msg.role === 'model' ? 0.2 : 0
-                  }}
-                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start items-start'}`}
-                >
-                  {msg.role === 'model' && (
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gold/20 to-gold/5 border border-gold/20 flex items-center justify-center text-gold mr-4 mt-1 flex-shrink-0 shadow-lg shadow-gold/5">
-                      <Sparkles size={18} className="animate-pulse" />
+              <div className="flex-1 w-full max-w-4xl mx-auto flex flex-col bg-bg/10 backdrop-blur-xl border border-gold/5 rounded-[3rem] overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.5)] pointer-events-auto">
+                <div className="p-6 border-b border-gold/5 flex items-center justify-between bg-white/5">
+                  <span className="font-cinzel text-[10px] tracking-[4px] text-gold/60 uppercase">Communion avec l'esprit</span>
+                  {user && (
+                    <div className="flex items-center gap-3">
+                      <div className="w-1.5 h-1.5 rounded-full bg-gold/40" />
+                      <span className="font-cinzel text-[9px] tracking-widest text-gold/40 uppercase">{user.displayName}</span>
                     </div>
                   )}
-                  <div
-                    className={`max-w-[85%] p-6 shadow-2xl relative group ${
-                      msg.role === 'user'
-                        ? 'bg-gradient-to-br from-blue-primary to-blue-primary/80 text-white rounded-3xl rounded-tr-sm border border-white/10'
-                        : 'bg-white/5 backdrop-blur-sm border border-gold/10 rounded-3xl rounded-tl-sm'
-                    }`}
-                  >
-                    {msg.role === 'user' ? (
-                      <div className="flex items-center gap-3 mb-2 opacity-60">
-                        <UserIcon size={12} />
-                        <span className="text-[0.6rem] uppercase tracking-widest font-bold">Salma</span>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-3 mb-3 opacity-80">
-                        <span className="text-[0.65rem] uppercase tracking-[0.3em] font-bold text-gold">Lumière</span>
-                        <div className="h-px w-8 bg-gold/30" />
-                      </div>
-                    )}
-                    
-                    <div className={`markdown-body ${msg.role === 'model' ? 'font-display italic text-white-cream/90' : 'font-sans font-medium'}`}>
-                      {msg.role === 'model' ? (
-                        <ReactMarkdown>{msg.text}</ReactMarkdown>
-                      ) : (
-                        <p>{msg.text}</p>
-                      )}
-                    </div>
+                </div>
 
-                    {msg.role === 'model' && (
-                      <div className="absolute -bottom-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Sparkles size={12} className="text-gold/40" />
+                <div className="flex-1 overflow-y-auto p-8 space-y-8 no-scrollbar scroll-smooth">
+                  {messages.map((msg, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      transition={{ duration: 0.5, ease: "easeOut" }}
+                      className={`flex flex-col gap-2 ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
+                    >
+                      <div className="flex items-center gap-3 px-2">
+                        {msg.role === 'model' && <Sparkles size={12} className="text-gold animate-pulse" />}
+                        <span className={`font-cinzel text-[10px] tracking-[3px] ${msg.role === 'user' ? 'text-text-dim' : 'text-gold-light'}`}>
+                          {msg.role === 'user' ? 'Toi' : 'Lumière'}
+                        </span>
                       </div>
-                    )}
-                  </div>
-                </motion.div>
-              ))}
-              {isLoading && (
-                <motion.div 
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="flex justify-start items-start"
-                >
-                  <div className="w-10 h-10 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center text-gold mr-4 mt-1 flex-shrink-0">
-                    <Sparkles size={18} className="animate-pulse" />
-                  </div>
-                  <div className="bg-white/5 border border-gold/10 rounded-3xl rounded-tl-sm px-6 py-4 backdrop-blur-sm flex flex-col gap-2">
-                    <div className="text-[0.6rem] text-gold/60 uppercase tracking-[0.2em] font-medium italic">Lumière s'imprègne de tes mots...</div>
-                    <div className="flex gap-2 py-1">
-                      <div className="w-2 h-2 rounded-full bg-gold/60 animate-bounce [animation-duration:0.6s]" />
-                      <div className="w-2 h-2 rounded-full bg-gold/60 animate-bounce [animation-duration:0.6s] [animation-delay:0.2s]" />
-                      <div className="w-2 h-2 rounded-full bg-gold/60 animate-bounce [animation-duration:0.6s] [animation-delay:0.4s]" />
+                      <div
+                        className={`max-w-[85%] p-6 text-[16px] leading-relaxed shadow-2xl transition-all hover:scale-[1.01] ${
+                          msg.role === 'user'
+                            ? 'bg-white/5 border border-white/10 rounded-[24px_24px_4px_24px] text-gold-pale/90'
+                            : 'bg-gold/5 border border-gold/10 rounded-[4px_24px_24px_24px] text-text italic font-spirit'
+                        }`}
+                      >
+                        {msg.role === 'model' ? (
+                          <div className="markdown-body">
+                            <ReactMarkdown>{msg.text}</ReactMarkdown>
+                          </div>
+                        ) : (
+                          <p>{msg.text}</p>
+                        )}
+                      </div>
+                    </motion.div>
+                  ))}
+                  {isLoading && creatureState === 'thinking' && (
+                    <div className="flex flex-col gap-2 items-start">
+                      <span className="font-cinzel text-[10px] tracking-[3px] text-gold-light px-2">Lumière</span>
+                      <div className="bg-gold/5 border border-gold/10 rounded-[4px_24px_24px_24px] p-6">
+                        <div className="flex gap-2">
+                          <motion.span animate={{ scale: [1, 1.5, 1], opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1.5 }} className="w-2 h-2 bg-gold rounded-full shadow-[0_0_100px_rgba(212,175,55,0.5)]" />
+                          <motion.span animate={{ scale: [1, 1.5, 1], opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1.5, delay: 0.3 }} className="w-2 h-2 bg-gold rounded-full shadow-[0_0_100px_rgba(212,175,55,0.5)]" />
+                          <motion.span animate={{ scale: [1, 1.5, 1], opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1.5, delay: 0.6 }} className="w-2 h-2 bg-gold rounded-full shadow-[0_0_100px_rgba(212,175,55,0.5)]" />
+                        </div>
+                      </div>
                     </div>
+                  )}
+                  <div ref={messagesEndRef} />
+                </div>
+
+                <div className="p-2 md:p-3 border-t border-gold/10 bg-black/20 flex gap-2 md:gap-3 items-center">
+                  <textarea
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendMessage();
+                      }
+                    }}
+                    placeholder="Murmure tes pensées à Lumière…"
+                    className="flex-1 bg-white/5 border border-gold/10 rounded-2xl text-text font-spirit text-base p-3 md:p-4 outline-none focus:border-gold/30 transition-all resize-none max-h-32 placeholder:text-gold/20"
+                    rows={1}
+                  />
+                  <div className="flex flex-row gap-2">
+                    <button 
+                      onClick={toggleListening}
+                      className={`w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center transition-all shadow-lg ${isListening ? 'bg-red-primary text-white animate-pulse' : 'bg-gold/10 text-gold hover:bg-gold/20'}`}
+                    >
+                      {isListening ? <MicOff size={20} /> : <Mic size={20} />}
+                    </button>
+                    <button 
+                      onClick={() => handleSendMessage()}
+                      disabled={!inputValue.trim() || isLoading}
+                      className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br from-gold to-gold-deep flex items-center justify-center text-bg disabled:opacity-40 hover:scale-105 active:scale-95 transition-all shadow-[0_5px_15px_rgba(212,175,55,0.2)]"
+                    >
+                      <Send size={20} />
+                    </button>
                   </div>
-                </motion.div>
-              )}
-              <div ref={messagesEndRef} />
+                </div>
+              </div>
             </div>
 
-    <div className="p-4 bg-bg/95 backdrop-blur-xl border-t border-gold/10 relative z-20 pb-safe">
-      <div className="flex gap-2 sm:gap-4 max-w-4xl mx-auto relative items-center">
-        <div className="absolute -inset-1 bg-gradient-to-r from-gold/20 to-blue-primary/20 blur-xl opacity-30 pointer-events-none" />
-        
-        <div className="relative flex-1 flex items-center">
-          <input
-            type="text"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-            placeholder={isListening ? "Je t'écoute..." : "Écris à Lumière..."}
-            className="w-full bg-white/5 border border-gold/20 rounded-2xl px-4 sm:px-6 py-3 sm:py-4 pr-12 sm:pr-16 text-[0.8rem] sm:text-[0.85rem] outline-none focus:border-gold/50 focus:bg-white/10 transition-all placeholder:text-muted-text/50 shadow-inner"
-          />
-          <div className="absolute right-2 sm:right-4 flex items-center gap-1 sm:gap-2">
-            {isListening && <VoiceWave isListening={isListening} />}
-            <button
-              onClick={toggleListening}
-              className={`p-1.5 sm:p-2 rounded-xl transition-all ${isListening ? 'text-red-primary bg-red-primary/10 animate-pulse' : 'text-gold-light/40 hover:text-gold hover:bg-gold/10'}`}
-            >
-              {isListening ? <MicOff size={16} /> : <Mic size={16} />}
-            </button>
-          </div>
-        </div>
-
-        <motion.button
-          whileHover={{ scale: 1.05, rotate: 5 }}
-          whileTap={{ scale: 0.95 }}
-          disabled={!inputValue.trim() || isLoading}
-          onClick={() => handleSendMessage()}
-          className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-gold to-gold/80 text-bg flex items-center justify-center disabled:from-gray-800 disabled:to-gray-900 disabled:text-muted-text transition-all shadow-lg shadow-gold/20 group flex-shrink-0"
-        >
-          <Send size={18} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-        </motion.button>
-      </div>
-              <div className="text-center mt-2">
-                <p className="text-[0.55rem] text-muted-text/40 uppercase tracking-[0.4em]">Inspiré par ta lumière</p>
-              </div>
+            {/* Lumiere Spirit: Now on top to "float around" the chat interface */}
+            <div className="absolute inset-0 z-20 pointer-events-none">
+              <LumiereSpirit state={creatureState} />
             </div>
           </motion.div>
         )}
