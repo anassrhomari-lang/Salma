@@ -375,6 +375,7 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [isInputFocused, setIsInputFocused] = useState(false);
   const [creatureState, setCreatureState] = useState<'idle' | 'thinking' | 'speaking'>('idle');
   const recognitionRef = useRef<any>(null);
 
@@ -597,6 +598,49 @@ Ta Lumière, éternellement.`
         ))}
       </div>
 
+      {/* Birthday Photo Background Integration */}
+      <div className="fixed inset-0 pointer-events-none z-[-1] opacity-20 mix-blend-lighten overflow-hidden">
+        <div 
+          className="absolute inset-0 bg-cover bg-center scale-105 blur-[1px]"
+          style={{ 
+            backgroundImage: `url('https://picsum.photos/seed/birthday_party/1920/1080')`, 
+            maskImage: 'radial-gradient(circle at center, rgba(0,0,0,1) 20%, rgba(0,0,0,0) 70%)',
+            WebkitMaskImage: 'radial-gradient(circle at center, rgba(0,0,0,1) 20%, rgba(0,0,0,0) 70%)'
+          }}
+        />
+        <div className="absolute inset-0 bg-bg/40 backdrop-blur-[2px]" />
+      </div>
+
+      {/* Floating Birthday Photos (Polaroid Style) */}
+      <motion.div
+        initial={{ opacity: 0, rotate: -10, y: 100 }}
+        animate={{ opacity: 0.3, rotate: 5, y: 0 }}
+        transition={{ delay: 2, duration: 1.5 }}
+        className="fixed bottom-20 right-10 z-[-1] pointer-events-none"
+      >
+        <div className="bg-white p-3 pb-10 shadow-2xl border border-white/20 rotate-[-5deg] scale-75 md:scale-100">
+          <div 
+            className="w-48 h-64 bg-cover bg-center grayscale-[0.3] sepia-[0.2]"
+            style={{ backgroundImage: `url('https://picsum.photos/seed/salma_birthday/400/600')` }}
+          />
+          <div className="mt-4 font-spirit text-bg text-center text-xl">Salma ✨</div>
+        </div>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, rotate: 10, y: 100 }}
+        animate={{ opacity: 0.25, rotate: -8, y: 0 }}
+        transition={{ delay: 2.5, duration: 1.5 }}
+        className="fixed top-20 left-10 z-[-1] pointer-events-none"
+      >
+        <div className="bg-white p-2 pb-8 shadow-2xl border border-white/20 rotate-[8deg] scale-50 md:scale-75">
+          <div 
+            className="w-40 h-56 bg-cover bg-center grayscale-[0.1]"
+            style={{ backgroundImage: `url('https://picsum.photos/seed/birthday_cake/400/600')` }}
+          />
+          <div className="mt-3 font-spirit text-bg text-center text-lg">26 Mars 🎂</div>
+        </div>
+      </motion.div>
       <AnimatePresence mode="wait">
         {chapter === 'cover' && (
           <motion.div
@@ -997,6 +1041,8 @@ Ta Lumière, éternellement.`
                   <textarea
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
+                    onFocus={() => setIsInputFocused(true)}
+                    onBlur={() => setIsInputFocused(false)}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
@@ -1028,7 +1074,7 @@ Ta Lumière, éternellement.`
 
             {/* Lumiere Spirit: Now on top to "float around" the chat interface */}
             <div className="absolute inset-0 z-20 pointer-events-none">
-              <LumiereSpirit state={creatureState} />
+              <LumiereSpirit state={creatureState} isInputFocused={isInputFocused} />
             </div>
           </motion.div>
         )}

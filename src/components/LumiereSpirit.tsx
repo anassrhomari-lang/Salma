@@ -3,13 +3,16 @@ import { motion, AnimatePresence } from 'motion/react';
 
 interface LumiereSpiritProps {
   state: 'idle' | 'thinking' | 'speaking';
+  isInputFocused?: boolean;
 }
 
-export const LumiereSpirit: React.FC<LumiereSpiritProps> = ({ state }) => {
+export const LumiereSpirit: React.FC<LumiereSpiritProps> = ({ state, isInputFocused }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [mousePos, setMousePos] = React.useState({ x: 0, y: 0 });
+  const [eyeTarget, setEyeTarget] = React.useState({ x: 0, y: 0 });
+  const [saccade, setSaccade] = React.useState({ x: 0, y: 0 });
   const [orbitAngle, setOrbitAngle] = React.useState(0);
-  const trailRef = useRef<{ x: number, y: number, opacity: number }[]>([]);
+  const [blinkState, setBlinkState] = React.useState(1); // 1 = open, 0 = closed
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -20,6 +23,33 @@ export const LumiereSpirit: React.FC<LumiereSpiritProps> = ({ state }) => {
     };
     window.addEventListener('mousemove', handleMouseMove);
     
+    // Saccades: Small rapid eye movements to look alive
+    const saccadeInterval = setInterval(() => {
+      if (Math.random() > 0.7) {
+        setSaccade({
+          x: (Math.random() - 0.5) * 4,
+          y: (Math.random() - 0.5) * 4
+        });
+        // Reset saccade quickly
+        setTimeout(() => setSaccade({ x: 0, y: 0 }), 150);
+      }
+    }, 2000);
+
+    // Natural Blinking
+    const blinkInterval = setInterval(() => {
+      if (Math.random() > 0.6) {
+        setBlinkState(0);
+        setTimeout(() => setBlinkState(1), 120);
+        // Occasional double blink
+        if (Math.random() > 0.8) {
+          setTimeout(() => {
+            setBlinkState(0);
+            setTimeout(() => setBlinkState(1), 100);
+          }, 250);
+        }
+      }
+    }, 4000);
+
     let frameId: number;
     const animateOrbit = () => {
       setOrbitAngle(prev => (prev + 0.004) % (Math.PI * 2));
@@ -29,9 +59,31 @@ export const LumiereSpirit: React.FC<LumiereSpiritProps> = ({ state }) => {
     
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
+      clearInterval(saccadeInterval);
+      clearInterval(blinkInterval);
       cancelAnimationFrame(frameId);
     };
   }, []);
+
+  // Eye target calculation
+  useEffect(() => {
+    let targetX = (mousePos.x / 60) * 8;
+    let targetY = (mousePos.y / 60) * 8;
+
+    // If input is focused, look down towards the chat input
+    if (isInputFocused) {
+      targetX = 0;
+      targetY = 10; // Looking down
+    }
+
+    // Thinking state: eyes dart around more
+    if (state === 'thinking') {
+      targetX += Math.sin(Date.now() / 150) * 5;
+      targetY += Math.cos(Date.now() / 150) * 5;
+    }
+
+    setEyeTarget({ x: targetX + saccade.x, y: targetY + saccade.y });
+  }, [mousePos, isInputFocused, state, saccade]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -136,6 +188,9 @@ export const LumiereSpirit: React.FC<LumiereSpiritProps> = ({ state }) => {
   const orbitX = Math.cos(orbitAngle) * radiusX + Math.sin(time * 0.4) * 40;
   const orbitY = Math.sin(orbitAngle) * radiusY + Math.cos(time * 0.6) * 50;
   
+  // Excited floating for the main spirit
+  const excitedFloat = Math.sin(Date.now() / 400) * 20;
+  
   // Companion Spirit Path (Offset and different speed)
   const companionAngle = orbitAngle + Math.PI * 0.8;
   const compX = Math.cos(companionAngle) * (radiusX * 0.7) + Math.sin(time * 0.8) * 20;
@@ -149,12 +204,32 @@ export const LumiereSpirit: React.FC<LumiereSpiritProps> = ({ state }) => {
   const compScale = (0.4 + compDepthFactor * 0.3) * (state === 'thinking' ? 1.2 : 1);
   const compOpacity = 0.2 + compDepthFactor * 0.4;
 
-  // Eye tracking logic
-  const eyeX = (mousePos.x / 60) * 8;
-  const eyeY = (mousePos.y / 60) * 8;
-
   return (
     <div className="relative w-full h-full overflow-hidden bg-transparent flex items-center justify-center">
+      {/* Birthday Celebration Sparkles */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {[...Array(12)].map((_, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{ 
+              opacity: [0, 1, 0],
+              scale: [0, 1.5, 0],
+              y: [-20, -150],
+              x: (i - 6) * 60
+            }}
+            transition={{ 
+              duration: 2 + Math.random() * 2,
+              repeat: Infinity,
+              delay: Math.random() * 5
+            }}
+            className="absolute left-1/2 bottom-1/2 text-gold/40 text-2xl"
+          >
+            ✦
+          </motion.div>
+        ))}
+      </div>
+
       {/* Deep Background Glows */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(212,175,55,0.12)_0%,transparent_80%)]" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(212,175,55,0.06)_0%,transparent_60%)]" />
@@ -184,7 +259,7 @@ export const LumiereSpirit: React.FC<LumiereSpiritProps> = ({ state }) => {
       <motion.div
         animate={{
           x: orbitX + mousePos.x,
-          y: orbitY + mousePos.y + Math.sin(Date.now() / 1000) * 20,
+          y: orbitY + mousePos.y + excitedFloat,
           scale: (state === 'thinking' ? 1.15 : 1) * depthScale,
           opacity: depthOpacity,
         }}
@@ -214,6 +289,25 @@ export const LumiereSpirit: React.FC<LumiereSpiritProps> = ({ state }) => {
           style={{ borderRadius: '55% 45% 45% 55% / 55% 55% 45% 45%' }}
         />
 
+        {/* Birthday Hat */}
+        <motion.div
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: -70, opacity: 1 }}
+          className="absolute z-30 flex flex-col items-center pointer-events-none"
+        >
+          {/* Pom-pom */}
+          <motion.div 
+            animate={{ scale: [1, 1.2, 1] }}
+            transition={{ duration: 1, repeat: Infinity }}
+            className="w-5 h-5 bg-white rounded-full shadow-[0_0_15px_white] mb-[-6px] relative z-10" 
+          />
+          {/* Cone */}
+          <div 
+            className="w-14 h-20 bg-gradient-to-b from-gold-light via-gold to-gold-deep shadow-xl"
+            style={{ clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)' }}
+          />
+        </motion.div>
+
         {/* Main Body */}
         <div className="relative w-44 h-44 bg-gradient-to-br from-gold-light via-gold/80 to-gold-deep/60 rounded-full shadow-[0_0_120px_rgba(212,175,55,0.5)] flex items-center justify-center overflow-hidden border border-white/30 backdrop-blur-lg">
           {/* Internal Glow Swirls */}
@@ -223,83 +317,161 @@ export const LumiereSpirit: React.FC<LumiereSpiritProps> = ({ state }) => {
             className="absolute inset-0 bg-[conic-gradient(from_0deg,transparent,rgba(255,255,255,0.2),transparent)]"
           />
 
-          {/* Blush */}
+          {/* Blush - More vibrant for excitement */}
           <motion.div 
-            animate={{ opacity: [0.3, 0.5, 0.3], scale: [1, 1.1, 1] }}
-            transition={{ duration: 4, repeat: Infinity }}
-            className="absolute bottom-14 left-8 w-10 h-5 bg-red-primary/25 blur-md rounded-full" 
+            animate={{ 
+              opacity: [0.4, 0.7, 0.4], 
+              scale: [1, 1.2, 1],
+              backgroundColor: ["rgba(165, 0, 68, 0.3)", "rgba(165, 0, 68, 0.5)", "rgba(165, 0, 68, 0.3)"]
+            }}
+            transition={{ duration: 2, repeat: Infinity }}
+            className="absolute bottom-14 left-8 w-12 h-6 blur-md rounded-full" 
           />
           <motion.div 
-            animate={{ opacity: [0.3, 0.5, 0.3], scale: [1, 1.1, 1] }}
-            transition={{ duration: 4, repeat: Infinity, delay: 0.5 }}
-            className="absolute bottom-14 right-8 w-10 h-5 bg-red-primary/25 blur-md rounded-full" 
+            animate={{ 
+              opacity: [0.4, 0.7, 0.4], 
+              scale: [1, 1.2, 1],
+              backgroundColor: ["rgba(165, 0, 68, 0.3)", "rgba(165, 0, 68, 0.5)", "rgba(165, 0, 68, 0.3)"]
+            }}
+            transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
+            className="absolute bottom-14 right-8 w-12 h-6 blur-md rounded-full" 
           />
 
           {/* Eyes with Tracking */}
           <div className="flex gap-12 relative z-10">
             <motion.div 
-              animate={state === 'thinking' ? { 
-                x: eyeX + Math.sin(Date.now() / 200) * 2, 
-                y: eyeY + Math.cos(Date.now() / 200) * 2,
-                scaleY: [1, 0.1, 1] 
-              } : {
-                x: eyeX,
-                y: eyeY,
-                scaleY: [1, 1, 0.1, 1, 1],
+              animate={{ 
+                x: eyeTarget.x,
+                y: eyeTarget.y,
+                scaleY: blinkState,
+                scale: state === 'speaking' ? [1, 1.1, 1] : 1
               }}
               transition={{ 
-                duration: state === 'thinking' ? 0.5 : 4.5, 
-                repeat: Infinity,
-                times: state === 'thinking' ? [0, 0.5, 1] : [0, 0.9, 0.95, 1]
+                x: { type: "spring", stiffness: 200, damping: 12 },
+                y: { type: "spring", stiffness: 200, damping: 12 },
+                scaleY: { duration: 0.1 },
+                scale: { duration: 0.2, repeat: state === 'speaking' ? Infinity : 0 }
               }}
-              className="w-7 h-7 bg-bg rounded-full shadow-inner relative flex items-center justify-center"
+              className="w-8 h-8 bg-bg rounded-full shadow-inner relative flex items-center justify-center border border-gold/20"
             >
-              <div className="absolute top-1.5 left-1.5 w-2.5 h-2.5 bg-white rounded-full opacity-90" />
-              <div className="absolute bottom-1.5 right-1.5 w-1.5 h-1.5 bg-white rounded-full opacity-50" />
+              <div className="absolute top-1.5 left-1.5 w-3 h-3 bg-white rounded-full opacity-95 shadow-[0_0_8px_white]" />
+              <div className="absolute bottom-1.5 right-1.5 w-2 h-2 bg-white rounded-full opacity-60" />
+              {/* Joyful squint when excited */}
+              <motion.div 
+                animate={{ opacity: state === 'speaking' ? 0.4 : 0 }}
+                className="absolute inset-0 bg-gold/20 rounded-full"
+              />
             </motion.div>
             <motion.div 
-              animate={state === 'thinking' ? { 
-                x: eyeX + Math.sin(Date.now() / 200) * 2, 
-                y: eyeY + Math.cos(Date.now() / 200) * 2,
-                scaleY: [1, 0.1, 1] 
-              } : {
-                x: eyeX,
-                y: eyeY,
-                scaleY: [1, 1, 0.1, 1, 1],
+              animate={{ 
+                x: eyeTarget.x,
+                y: eyeTarget.y,
+                scaleY: blinkState,
+                scale: state === 'speaking' ? [1, 1.1, 1] : 1
               }}
               transition={{ 
-                duration: state === 'thinking' ? 0.5 : 4.5, 
-                repeat: Infinity,
-                delay: 0.15,
-                times: state === 'thinking' ? [0, 0.9, 0.95, 1] : [0, 0.9, 0.95, 1]
+                x: { type: "spring", stiffness: 200, damping: 12 },
+                y: { type: "spring", stiffness: 200, damping: 12 },
+                scaleY: { duration: 0.1 },
+                scale: { duration: 0.2, repeat: state === 'speaking' ? Infinity : 0 }
               }}
-              className="w-7 h-7 bg-bg rounded-full shadow-inner relative flex items-center justify-center"
+              className="w-8 h-8 bg-bg rounded-full shadow-inner relative flex items-center justify-center border border-gold/20"
             >
-              <div className="absolute top-1.5 left-1.5 w-2.5 h-2.5 bg-white rounded-full opacity-90" />
-              <div className="absolute bottom-1.5 right-1.5 w-1.5 h-1.5 bg-white rounded-full opacity-50" />
+              <div className="absolute top-1.5 left-1.5 w-3 h-3 bg-white rounded-full opacity-95 shadow-[0_0_8px_white]" />
+              <div className="absolute bottom-1.5 right-1.5 w-2 h-2 bg-white rounded-full opacity-60" />
+              <motion.div 
+                animate={{ opacity: state === 'speaking' ? 0.4 : 0 }}
+                className="absolute inset-0 bg-gold/20 rounded-full"
+              />
             </motion.div>
           </div>
           
-          {/* Mouth/Speaking indicator */}
-          <div className="absolute bottom-12 h-4 flex items-center justify-center">
-            {state === 'speaking' ? (
-              <motion.div
-                animate={{ 
-                  scaleX: [1, 1.5, 1], 
-                  scaleY: [1, 0.5, 1],
-                  opacity: [0.6, 1, 0.6]
-                }}
-                transition={{ duration: 0.25, repeat: Infinity }}
-                className="w-6 h-2 bg-bg/40 rounded-full blur-[1px]"
-              />
-            ) : (
-              <motion.div 
-                animate={{ width: [12, 16, 12] }}
-                transition={{ duration: 3, repeat: Infinity }}
-                className="w-4 h-[2px] bg-bg/30 rounded-full" 
-              />
-            )}
+          {/* Joyful Smile */}
+          <div className="absolute bottom-10 h-8 flex items-center justify-center">
+            <motion.div
+              animate={{ 
+                height: state === 'speaking' ? [8, 14, 8] : 10,
+                width: state === 'speaking' ? [24, 32, 24] : 28,
+                rotate: [0, 2, -2, 0]
+              }}
+              transition={{ 
+                duration: state === 'speaking' ? 0.2 : 3, 
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+              className="border-b-4 border-bg/70 rounded-[0_0_50%_50%] shadow-[0_4px_10px_rgba(0,0,0,0.2)]"
+            />
+            {/* Party Blower */}
+            <motion.div
+              animate={{ 
+                scaleX: state === 'speaking' ? [1, 1.5, 1] : 1,
+                rotate: [15, 20, 15]
+              }}
+              transition={{ duration: 0.5, repeat: Infinity }}
+              className="absolute -right-4 bottom-0 w-8 h-2 bg-red-primary rounded-full origin-left"
+            />
           </div>
+        </div>
+
+        {/* Small Hands */}
+        <div className="absolute inset-0 pointer-events-none">
+          {/* Left Hand holding a balloon */}
+          <motion.div
+            animate={{ 
+              x: -110 + Math.sin(Date.now() / 500) * 12,
+              y: 30 + Math.cos(Date.now() / 700) * 18,
+              rotate: [-15, 15, -15]
+            }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute left-0 top-1/2 w-10 h-10 bg-gold/40 rounded-[40%_60%_60%_40%] blur-sm border border-white/20 flex items-center justify-center shadow-[0_0_15px_rgba(212,175,55,0.3)]"
+          >
+            <div className="w-5 h-5 bg-white/30 rounded-full" />
+            {/* Tiny finger-like glow */}
+            <div className="absolute -top-1 left-2 w-2 h-4 bg-gold/30 rounded-full rotate-[-20deg]" />
+            
+            {/* Balloon String */}
+            <div className="absolute bottom-full left-1/2 w-[1px] h-20 bg-white/20 origin-bottom" />
+            {/* Balloon */}
+            <motion.div
+              animate={{ y: [-100, -110, -100], rotate: [-5, 5, -5] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute bottom-[120px] left-[-10px] w-16 h-20 bg-gradient-to-br from-gold to-gold-deep rounded-[50%_50%_50%_50%/60%_60%_40%_40%] flex items-center justify-center border border-white/20 shadow-2xl"
+            >
+              <span className="text-bg font-bold text-xl">25</span>
+            </motion.div>
+          </motion.div>
+          {/* Right Hand holding a cake */}
+          <motion.div
+            animate={{ 
+              x: 110 + Math.cos(Date.now() / 500) * 12,
+              y: 30 + Math.sin(Date.now() / 700) * 18,
+              rotate: [15, -15, 15]
+            }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute right-0 top-1/2 w-10 h-10 bg-gold/40 rounded-[60%_40%_40%_60%] blur-sm border border-white/20 flex items-center justify-center shadow-[0_0_15px_rgba(212,175,55,0.3)]"
+          >
+            <div className="w-5 h-5 bg-white/30 rounded-full" />
+            {/* Tiny finger-like glow */}
+            <div className="absolute -top-1 right-2 w-2 h-4 bg-gold/30 rounded-full rotate-[20deg]" />
+            
+            {/* Small Cake */}
+            <motion.div
+              animate={{ y: [-15, -20, -15] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute bottom-full mb-2 w-12 h-10 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg flex flex-col items-center justify-end p-1"
+            >
+              <div className="w-full h-1/2 bg-gold/30 rounded-t-sm" />
+              <div className="w-full h-1/2 bg-gold/20 rounded-b-sm" />
+              {/* Candle */}
+              <div className="absolute -top-4 w-1 h-4 bg-white/50 rounded-full">
+                <motion.div 
+                  animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
+                  transition={{ duration: 0.5, repeat: Infinity }}
+                  className="absolute -top-2 left-1/2 -translate-x-1/2 w-2 h-2 bg-gold rounded-full blur-[2px]" 
+                />
+              </div>
+            </motion.div>
+          </motion.div>
         </div>
         
         {/* Name Label with floating effect */}
