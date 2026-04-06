@@ -26,6 +26,11 @@
 @layer base {
   body {
     @apply bg-bg text-white-cream font-sans min-h-screen overflow-x-hidden selection:bg-gold/30 selection:text-gold-light;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  body::-webkit-scrollbar {
+    display: none;
   }
 }
 
@@ -77,5 +82,12 @@
   }
   .markdown-body strong {
     @apply font-bold text-gold-light;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }
