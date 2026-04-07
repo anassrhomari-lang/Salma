@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { sounds } from '../lib/sounds';
 
 interface LumiereSpiritProps {
   state: 'idle' | 'thinking' | 'speaking';
@@ -39,6 +40,7 @@ export const LumiereSpirit: React.FC<LumiereSpiritProps> = ({ state, isInputFocu
     const blinkInterval = setInterval(() => {
       if (Math.random() > 0.6) {
         setBlinkState(0);
+        sounds.playBlink();
         setTimeout(() => setBlinkState(1), 120);
         // Occasional double blink
         if (Math.random() > 0.8) {
@@ -179,25 +181,48 @@ export const LumiereSpirit: React.FC<LumiereSpiritProps> = ({ state, isInputFocu
     };
   }, []);
 
-  // Calculate orbital position - Closer to the chat box
-  const radiusX = typeof window !== 'undefined' ? Math.min(window.innerWidth * 0.42, 600) : 500;
-  const radiusY = typeof window !== 'undefined' ? Math.min(window.innerHeight * 0.38, 450) : 350;
+  // Calculate orbital position - Responsive radii
+  const [windowSize, setWindowSize] = React.useState({
+    width: typeof window !== 'undefined' ? window.innerWidth : 1200,
+    height: typeof window !== 'undefined' ? window.innerHeight : 800
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (state === 'speaking') {
+      sounds.playMagicChime();
+    }
+  }, [state]);
+
+  const isMobile = windowSize.width < 768;
+  const radiusX = isMobile ? windowSize.width * 0.3 : Math.min(windowSize.width * 0.42, 600);
+  const radiusY = isMobile ? windowSize.height * 0.25 : Math.min(windowSize.height * 0.38, 450);
   
   // Primary Spirit Path
   const time = Date.now() / 1000;
-  const orbitX = Math.cos(orbitAngle) * radiusX + Math.sin(time * 0.4) * 40;
-  const orbitY = Math.sin(orbitAngle) * radiusY + Math.cos(time * 0.6) * 50;
+  const orbitX = Math.cos(orbitAngle) * radiusX + Math.sin(time * 0.4) * (isMobile ? 20 : 40);
+  const orbitY = Math.sin(orbitAngle) * radiusY + Math.cos(time * 0.6) * (isMobile ? 25 : 50);
   
   // Excited floating for the main spirit
-  const excitedFloat = Math.sin(Date.now() / 400) * 20;
+  const excitedFloat = Math.sin(Date.now() / 400) * (isMobile ? 10 : 20);
   
   // Companion Spirit Path (Offset and different speed)
   const companionAngle = orbitAngle + Math.PI * 0.8;
-  const compX = Math.cos(companionAngle) * (radiusX * 0.7) + Math.sin(time * 0.8) * 20;
-  const compY = Math.sin(companionAngle) * (radiusY * 0.7) + Math.cos(time * 0.9) * 25;
+  const compX = Math.cos(companionAngle) * (radiusX * 0.7) + Math.sin(time * 0.8) * (isMobile ? 10 : 20);
+  const compY = Math.sin(companionAngle) * (radiusY * 0.7) + Math.cos(time * 0.9) * (isMobile ? 12 : 25);
   
   const depthFactor = (Math.sin(orbitAngle) + 1) / 2;
-  const depthScale = 0.8 + depthFactor * 0.4;
+  const depthScale = (isMobile ? 0.6 : 0.8) + depthFactor * (isMobile ? 0.2 : 0.4);
   const depthOpacity = 0.5 + depthFactor * 0.5;
 
   const compDepthFactor = (Math.sin(companionAngle) + 1) / 2;
@@ -292,24 +317,24 @@ export const LumiereSpirit: React.FC<LumiereSpiritProps> = ({ state, isInputFocu
         {/* Birthday Hat */}
         <motion.div
           initial={{ y: -20, opacity: 0 }}
-          animate={{ y: -70, opacity: 1 }}
+          animate={{ y: isMobile ? -50 : -70, opacity: 1, scale: isMobile ? 0.7 : 1 }}
           className="absolute z-30 flex flex-col items-center pointer-events-none"
         >
           {/* Pom-pom */}
           <motion.div 
             animate={{ scale: [1, 1.2, 1] }}
             transition={{ duration: 1, repeat: Infinity }}
-            className="w-5 h-5 bg-white rounded-full shadow-[0_0_15px_white] mb-[-6px] relative z-10" 
+            className="w-4 h-4 sm:w-5 sm:h-5 bg-white rounded-full shadow-[0_0_15px_white] mb-[-6px] relative z-10" 
           />
           {/* Cone */}
           <div 
-            className="w-14 h-20 bg-gradient-to-b from-gold-light via-gold to-gold-deep shadow-xl"
+            className="w-10 h-14 sm:w-14 sm:h-20 bg-gradient-to-b from-gold-light via-gold to-gold-deep shadow-xl"
             style={{ clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)' }}
           />
         </motion.div>
 
         {/* Main Body */}
-        <div className="relative w-44 h-44 bg-gradient-to-br from-gold-light via-gold/80 to-gold-deep/60 rounded-full shadow-[0_0_120px_rgba(212,175,55,0.5)] flex items-center justify-center overflow-hidden border border-white/30 backdrop-blur-lg">
+        <div className={`relative ${isMobile ? 'w-28 h-28' : 'w-44 h-44'} bg-gradient-to-br from-gold-light via-gold/80 to-gold-deep/60 rounded-full shadow-[0_0_120px_rgba(212,175,55,0.5)] flex items-center justify-center overflow-hidden border border-white/30 backdrop-blur-lg`}>
           {/* Internal Glow Swirls */}
           <motion.div 
             animate={{ rotate: 360, opacity: [0.1, 0.3, 0.1] }}
@@ -338,11 +363,11 @@ export const LumiereSpirit: React.FC<LumiereSpiritProps> = ({ state, isInputFocu
           />
 
           {/* Eyes with Tracking */}
-          <div className="flex gap-12 relative z-10">
+          <div className="flex gap-8 sm:gap-12 relative z-10">
             <motion.div 
               animate={{ 
-                x: eyeTarget.x,
-                y: eyeTarget.y,
+                x: eyeTarget.x * (isMobile ? 0.6 : 1),
+                y: eyeTarget.y * (isMobile ? 0.6 : 1),
                 scaleY: blinkState,
                 scale: state === 'speaking' ? [1, 1.1, 1] : 1
               }}
@@ -352,10 +377,10 @@ export const LumiereSpirit: React.FC<LumiereSpiritProps> = ({ state, isInputFocu
                 scaleY: { duration: 0.1 },
                 scale: { duration: 0.2, repeat: state === 'speaking' ? Infinity : 0 }
               }}
-              className="w-8 h-8 bg-bg rounded-full shadow-inner relative flex items-center justify-center border border-gold/20"
+              className="w-6 h-6 sm:w-8 sm:h-8 bg-bg rounded-full shadow-inner relative flex items-center justify-center border border-gold/20"
             >
-              <div className="absolute top-1.5 left-1.5 w-3 h-3 bg-white rounded-full opacity-95 shadow-[0_0_8px_white]" />
-              <div className="absolute bottom-1.5 right-1.5 w-2 h-2 bg-white rounded-full opacity-60" />
+              <div className="absolute top-1 left-1 sm:top-1.5 sm:left-1.5 w-2 h-2 sm:w-3 sm:h-3 bg-white rounded-full opacity-95 shadow-[0_0_8px_white]" />
+              <div className="absolute bottom-1 right-1 sm:bottom-1.5 sm:right-1.5 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full opacity-60" />
               {/* Joyful squint when excited */}
               <motion.div 
                 animate={{ opacity: state === 'speaking' ? 0.4 : 0 }}
@@ -364,8 +389,8 @@ export const LumiereSpirit: React.FC<LumiereSpiritProps> = ({ state, isInputFocu
             </motion.div>
             <motion.div 
               animate={{ 
-                x: eyeTarget.x,
-                y: eyeTarget.y,
+                x: eyeTarget.x * (isMobile ? 0.6 : 1),
+                y: eyeTarget.y * (isMobile ? 0.6 : 1),
                 scaleY: blinkState,
                 scale: state === 'speaking' ? [1, 1.1, 1] : 1
               }}
@@ -375,10 +400,10 @@ export const LumiereSpirit: React.FC<LumiereSpiritProps> = ({ state, isInputFocu
                 scaleY: { duration: 0.1 },
                 scale: { duration: 0.2, repeat: state === 'speaking' ? Infinity : 0 }
               }}
-              className="w-8 h-8 bg-bg rounded-full shadow-inner relative flex items-center justify-center border border-gold/20"
+              className="w-6 h-6 sm:w-8 sm:h-8 bg-bg rounded-full shadow-inner relative flex items-center justify-center border border-gold/20"
             >
-              <div className="absolute top-1.5 left-1.5 w-3 h-3 bg-white rounded-full opacity-95 shadow-[0_0_8px_white]" />
-              <div className="absolute bottom-1.5 right-1.5 w-2 h-2 bg-white rounded-full opacity-60" />
+              <div className="absolute top-1 left-1 sm:top-1.5 sm:left-1.5 w-2 h-2 sm:w-3 sm:h-3 bg-white rounded-full opacity-95 shadow-[0_0_8px_white]" />
+              <div className="absolute bottom-1 right-1 sm:bottom-1.5 sm:right-1.5 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full opacity-60" />
               <motion.div 
                 animate={{ opacity: state === 'speaking' ? 0.4 : 0 }}
                 className="absolute inset-0 bg-gold/20 rounded-full"
@@ -387,11 +412,11 @@ export const LumiereSpirit: React.FC<LumiereSpiritProps> = ({ state, isInputFocu
           </div>
           
           {/* Joyful Smile */}
-          <div className="absolute bottom-10 h-8 flex items-center justify-center">
+          <div className="absolute bottom-6 sm:bottom-10 h-6 sm:h-8 flex items-center justify-center">
             <motion.div
               animate={{ 
-                height: state === 'speaking' ? [8, 14, 8] : 10,
-                width: state === 'speaking' ? [24, 32, 24] : 28,
+                height: state === 'speaking' ? [6, 12, 6] : 8,
+                width: state === 'speaking' ? [20, 28, 20] : 24,
                 rotate: [0, 2, -2, 0]
               }}
               transition={{ 
@@ -408,7 +433,7 @@ export const LumiereSpirit: React.FC<LumiereSpiritProps> = ({ state, isInputFocu
                 rotate: [15, 20, 15]
               }}
               transition={{ duration: 0.5, repeat: Infinity }}
-              className="absolute -right-4 bottom-0 w-8 h-2 bg-red-primary rounded-full origin-left"
+              className="absolute -right-3 sm:-right-4 bottom-0 w-6 h-1.5 sm:w-8 sm:h-2 bg-red-primary rounded-full origin-left"
             />
           </div>
         </div>
@@ -418,56 +443,56 @@ export const LumiereSpirit: React.FC<LumiereSpiritProps> = ({ state, isInputFocu
           {/* Left Hand holding a balloon */}
           <motion.div
             animate={{ 
-              x: -110 + Math.sin(Date.now() / 500) * 12,
-              y: 30 + Math.cos(Date.now() / 700) * 18,
+              x: (isMobile ? -60 : -110) + Math.sin(Date.now() / 500) * (isMobile ? 6 : 12),
+              y: (isMobile ? 15 : 30) + Math.cos(Date.now() / 700) * (isMobile ? 9 : 18),
               rotate: [-15, 15, -15]
             }}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute left-0 top-1/2 w-10 h-10 bg-gold/40 rounded-[40%_60%_60%_40%] blur-sm border border-white/20 flex items-center justify-center shadow-[0_0_15px_rgba(212,175,55,0.3)]"
+            className="absolute left-0 top-1/2 w-8 h-8 sm:w-10 sm:h-10 bg-gold/40 rounded-[40%_60%_60%_40%] blur-sm border border-white/20 flex items-center justify-center shadow-[0_0_15px_rgba(212,175,55,0.3)]"
           >
-            <div className="w-5 h-5 bg-white/30 rounded-full" />
+            <div className="w-4 h-4 sm:w-5 sm:h-5 bg-white/30 rounded-full" />
             {/* Tiny finger-like glow */}
-            <div className="absolute -top-1 left-2 w-2 h-4 bg-gold/30 rounded-full rotate-[-20deg]" />
+            <div className="absolute -top-1 left-1.5 sm:left-2 w-1.5 h-3 sm:w-2 sm:h-4 bg-gold/30 rounded-full rotate-[-20deg]" />
             
             {/* Balloon String */}
-            <div className="absolute bottom-full left-1/2 w-[1px] h-20 bg-white/20 origin-bottom" />
+            <div className="absolute bottom-full left-1/2 w-[1px] h-12 sm:h-20 bg-white/20 origin-bottom" />
             {/* Balloon */}
             <motion.div
-              animate={{ y: [-100, -110, -100], rotate: [-5, 5, -5] }}
+              animate={{ y: [-60, -70, -60], rotate: [-5, 5, -5] }}
               transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute bottom-[120px] left-[-10px] w-16 h-20 bg-gradient-to-br from-gold to-gold-deep rounded-[50%_50%_50%_50%/60%_60%_40%_40%] flex items-center justify-center border border-white/20 shadow-2xl"
+              className="absolute bottom-[80px] sm:bottom-[120px] left-[-5px] sm:left-[-10px] w-12 h-16 sm:w-16 sm:h-20 bg-gradient-to-br from-gold to-gold-deep rounded-[50%_50%_50%_50%/60%_60%_40%_40%] flex items-center justify-center border border-white/20 shadow-2xl"
             >
-              <span className="text-bg font-bold text-xl">25</span>
+              <span className="text-bg font-bold text-base sm:text-xl">25</span>
             </motion.div>
           </motion.div>
           {/* Right Hand holding a cake */}
           <motion.div
             animate={{ 
-              x: 110 + Math.cos(Date.now() / 500) * 12,
-              y: 30 + Math.sin(Date.now() / 700) * 18,
+              x: (isMobile ? 60 : 110) + Math.cos(Date.now() / 500) * (isMobile ? 6 : 12),
+              y: (isMobile ? 15 : 30) + Math.sin(Date.now() / 700) * (isMobile ? 9 : 18),
               rotate: [15, -15, 15]
             }}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute right-0 top-1/2 w-10 h-10 bg-gold/40 rounded-[60%_40%_40%_60%] blur-sm border border-white/20 flex items-center justify-center shadow-[0_0_15px_rgba(212,175,55,0.3)]"
+            className="absolute right-0 top-1/2 w-8 h-8 sm:w-10 sm:h-10 bg-gold/40 rounded-[60%_40%_40%_60%] blur-sm border border-white/20 flex items-center justify-center shadow-[0_0_15px_rgba(212,175,55,0.3)]"
           >
-            <div className="w-5 h-5 bg-white/30 rounded-full" />
+            <div className="w-4 h-4 sm:w-5 sm:h-5 bg-white/30 rounded-full" />
             {/* Tiny finger-like glow */}
-            <div className="absolute -top-1 right-2 w-2 h-4 bg-gold/30 rounded-full rotate-[20deg]" />
+            <div className="absolute -top-1 right-1.5 sm:right-2 w-1.5 h-3 sm:w-2 sm:h-4 bg-gold/30 rounded-full rotate-[20deg]" />
             
             {/* Small Cake */}
             <motion.div
-              animate={{ y: [-15, -20, -15] }}
+              animate={{ y: [-10, -15, -10] }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute bottom-full mb-2 w-12 h-10 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg flex flex-col items-center justify-end p-1"
+              className="absolute bottom-full mb-1.5 w-10 h-8 sm:w-12 sm:h-10 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg flex flex-col items-center justify-end p-1"
             >
               <div className="w-full h-1/2 bg-gold/30 rounded-t-sm" />
               <div className="w-full h-1/2 bg-gold/20 rounded-b-sm" />
               {/* Candle */}
-              <div className="absolute -top-4 w-1 h-4 bg-white/50 rounded-full">
+              <div className="absolute -top-3 sm:-top-4 w-0.5 sm:w-1 h-3 sm:h-4 bg-white/50 rounded-full">
                 <motion.div 
                   animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
                   transition={{ duration: 0.5, repeat: Infinity }}
-                  className="absolute -top-2 left-1/2 -translate-x-1/2 w-2 h-2 bg-gold rounded-full blur-[2px]" 
+                  className="absolute -top-1.5 sm:-top-2 left-1/2 -translate-x-1/2 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gold rounded-full blur-[2px]" 
                 />
               </div>
             </motion.div>
